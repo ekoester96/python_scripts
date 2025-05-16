@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 # Author: Ethan
-#!/bin/env/ python3
 # Date created: 5/9/2025
 # Date modified: 5/16/2025
 # Description: This script is used to parse product data for newegg componenet URLS the example URL_1 is for gpu components but can be changed to
