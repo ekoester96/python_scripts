@@ -1,15 +1,23 @@
+# Author: Ethan
+#!/bin/env/ python3
+# Date created: 5/9/2025
+# Date modified: 5/16/2025
+# Description: This script is used to parse product data for newegg componenet URLS the example URL_1 is for gpu components but can be changed to
+# different categories. The END_PAGE can also be changed to include more or less products. 
+
 import requests
 import re
 import random
 from bs4 import BeautifulSoup
-# this code extracts data from a list of products on Neweggs graphics cards components category but
-# it can be modified to get data from other components or pages on Newegg.com
+from urllib.parse import urljoin
+from datetime import datetime
+import csv
 
-base_url = "https://www.newegg.com/"
-url1 = "https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48"
+BASE_URL = "https://www.newegg.com/"
+URL_1 = "https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48/"
+START_PAGE = 1
+END_PAGE = 10
 
-# this is a list of user agents that will be picked at random and incorporated into the header
-# to prevent the web server from blocking http requests
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
@@ -20,11 +28,9 @@ user_agents = [
     "Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
 ]
 
-
 def get_random_user_agent():
     return random.choice(user_agents)
 
-# this function returns a browser header it's not the best it needs to be worked on
 def get_headers():
     return {
         "Host": "www.newegg.com",
@@ -33,18 +39,17 @@ def get_headers():
         "Origin": "https://www.newegg.com",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive",
-        "Referer": "https://www.google.com/",
+        "Referer": "https://www.newegg.com",
         "Cache-Control": "no-cache",
         "Upgrade-Insecure-Requests": "1",
         "Dnt": "1"
     }
-# here we need to call the functions that pick a random user agent and update our sessions
-# with the header and user agent we've generated
-get_random_user_agent()
-session = requests.Session()
-session.headers.update(get_headers())
 
-# here is the function that extracts data from each item on the page like product name, brand, rating, stock status
+def update_session():
+    get_random_user_agent()
+    session = requests.Session()
+    session.headers.update(get_headers())
+
 def extract_product_info(item):
 
     title_tag = item.find('a', class_='item-title')
@@ -52,6 +57,7 @@ def extract_product_info(item):
         return None
 
     product_name = title_tag.text.strip()
+    product_url = urljoin(BASE_URL, title_tag['href'])
 
     stock_tag = item.find('i', class_='item-promo-icon')
     stock_status = 'OUT OF STOCK' if stock_tag and 'OUT OF STOCK' in stock_tag.text else 'IN STOCK'
@@ -83,38 +89,51 @@ def extract_product_info(item):
 
 
     return {
-      'name': product_name,
-      'price': price_value,
-      'stock': stock_status,
-      'brand': brand,
-      'rating': rating_text,
+        'name': product_name,
+        'url': product_url,
+        'price': price_value,
+        'stock': stock_status,
+        'brand': brand,
+        'rating': rating_text,
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
 
-# this function is for parsing the first html page because there is no page number
-def html_parser():
-    response = requests.get("https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48/")
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    items = soup.find_all('div', class_='item-cell')
-
-    for item in items:
-        product = extract_product_info(item)
-        print(product)
-
-html_parser()
-
-# this function parses each page number in a while loop
 def paged_parser():
-    page_number = 2
-    pages = "Page-" + str(page_number)
-    while page_number < 5:
-        response = requests.get("https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48/" + pages)
+    end_page = END_PAGE
+    page_number = START_PAGE
+    all_products = []
+
+    while page_number <= end_page:
+        pages = f'Page-{page_number}' if page_number > 1 else ''
+        response = requests.get(f'{URL_1}{pages}')
         soup = BeautifulSoup(response.text, 'html.parser')
         items = soup.find_all('div', class_='item-cell')
-        page_number += 1
 
         for item in items:
             product = extract_product_info(item)
-            print(product)
+            if product:
+                all_products.append(product)
 
-paged_parser()
+        page_number += 1
+
+    return all_products
+
+
+def save_to_csv(products, filename="newegg_gpu.csv"):
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['brand', 'name', 'price', 'stock', 'rating', 'url', 'timestamp']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for product in products:
+            row = {field: product.get(field, '') for field in fieldnames}
+            writer.writerow(row)
+
+def main():
+    update_session()
+    all_products = paged_parser()
+    save_to_csv(all_products)
+
+if __name__ == "__main__":
+    main()
