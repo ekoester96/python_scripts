@@ -13,12 +13,12 @@ from urllib.parse import urljoin
 from datetime import datetime
 import csv
 
+DATE = datetime.now().strftime('%Y-%m-%d')
 BASE_URL = "https://www.newegg.com/"
 URL_1 = "https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48/"
 START_PAGE = 1
 END_PAGE = 10
-
-user_agents = [
+USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0",
@@ -29,7 +29,7 @@ user_agents = [
 ]
 
 def get_random_user_agent():
-    return random.choice(user_agents)
+    return random.choice(USER_AGENTS)
 
 def get_headers():
     return {
@@ -120,7 +120,7 @@ def paged_parser():
     return all_products
 
 
-def save_to_csv(products, filename="newegg_gpu.csv"):
+def save_to_csv(products, filename=f"newegg_gpu_{DATE}.csv"):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['brand', 'name', 'price', 'stock', 'rating', 'url', 'timestamp']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
