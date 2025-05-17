@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 from datetime import datetime
 import csv
 
+COMPONENT = GPU
 DATE = datetime.now().strftime('%Y-%m-%d')
 BASE_URL = "https://www.newegg.com/"
 URL_1 = "https://www.newegg.com/GPUs-Video-Graphics-Cards/SubCategory/ID-48/"
@@ -89,6 +90,7 @@ def extract_product_info(item):
 
 
     return {
+        'component': COMPONENT,
         'name': product_name,
         'url': product_url,
         'price': price_value,
@@ -105,7 +107,7 @@ def paged_parser():
     all_products = []
 
     while page_number <= end_page:
-        pages = f'Page-{page_number}' if page_number > 1 else ''
+        pages = f'Page-{page_number}' if page_number > 1 else None
         response = requests.get(f'{URL_1}{pages}')
         soup = BeautifulSoup(response.text, 'html.parser')
         items = soup.find_all('div', class_='item-cell')
@@ -122,7 +124,7 @@ def paged_parser():
 
 def save_to_csv(products, filename=f"newegg_gpu_{DATE}.csv"):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['brand', 'name', 'price', 'stock', 'rating', 'url', 'timestamp']
+        fieldnames = ['component', 'brand', 'name', 'price', 'stock', 'rating', 'url', 'timestamp']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
