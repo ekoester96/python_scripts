@@ -23,7 +23,7 @@ def scan(ip):
 
     clients_list = []
     for element in answered_list:
-        client_dict = {"ip": element[0].psrc, "mac": element[1].hwsrc}
+        client_dict = {"ip": element[1].psrc, "mac": element[1].hwsrc}
         clients_list.append(client_dict)
 
     return clients_list
