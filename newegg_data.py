@@ -40,13 +40,15 @@ USER_AGENTS = [
 
 def get_random_user_agent():
     return random.choice(USER_AGENTS)
+    
+user_agent = get_random_user_agent()
 
 # this function updates the header of our http request to look like it came from a real computer/browser
 def get_headers():
     return {
         "Host": "www.newegg.com",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "User-Agent": get_random_user_agent(),
+        "User-Agent": user_agent,
         "Origin": "https://www.newegg.com",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive",
@@ -56,10 +58,9 @@ def get_headers():
         "Dnt": "1"
     }
 
-# this function updates our session with the new headers/user agents
+# this function updates our session with the new request headers/user agents
 # we want to be able to call it when making new url requests or if there are errors making requests
 def update_session():
-    get_random_user_agent()
     session = requests.Session()
     session.headers.update(get_headers())
 
