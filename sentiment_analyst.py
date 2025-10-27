@@ -10,7 +10,7 @@ import textwrap
 import re
 
 # --- Configuration ---
-NEWSAPI_KEY = "3357bfc829fc4f1d906d0d5b72f2980c"
+NEWSAPI_KEY = ""
 OLLAMA_MODEL = "granite3.3:2b"
 QUERY = '("SPY" OR "S&P 5tg00") AND (market OR stocks OR finance OR earnings OR Fed OR inflation OR economy)'
 DOMAINS = None
